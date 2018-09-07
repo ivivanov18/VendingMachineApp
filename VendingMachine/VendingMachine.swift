@@ -43,7 +43,7 @@ protocol VendingMachine{
     var amountDeposited: Double {get set}
     
     init(inventory: [VendingSelection: VendingItem])
-    func vend(_ quantity: Int, _ selection: VendingSelection) throws
+    func vend(selection: VendingSelection, quantity: Int) throws
     func deposit(_ amount: Double)
     
 }
@@ -94,6 +94,14 @@ class InventoryUnarchiver{
         return inventory
     }
 }
+
+enum VendinMachineError: Error{
+    case invalidSelection
+    case outOfStock
+    case insufficientFunds(required: Double)
+}
+
+
 class FoodVendingMachine: VendingMachine{
     let selection: [VendingSelection] = [.soda, .dietSoda, .chips, .cookie, .sandwich, .candyBar, .popTart, .wrap, .water, .fruitJuice, .sportsDrink, .gum]
     var inventory: [VendingSelection : VendingItem]
@@ -103,8 +111,25 @@ class FoodVendingMachine: VendingMachine{
         self.inventory = inventory
     }
     
-    func vend(_ quantity: Int, _ selection: VendingSelection) throws {
+    func vend(selection: VendingSelection, quantity: Int) throws {
+        guard var item = inventory[selection] else{
+            throw VendinMachineError.invalidSelection
+        }
         
+        guard item.quantity >= quantity else{
+            throw VendinMachineError.outOfStock
+        }
+        
+        let totalPrice = item.price * Double(quantity)
+        
+        if amountDeposited >= totalPrice{
+            amountDeposited -= totalPrice
+            
+            item.quantity -= quantity
+        }else{
+            let amountRequired = totalPrice - amountDeposited
+            throw VendinMachineError.insufficientFunds(required: amountRequired)
+        }
     }
     
     func deposit(_ amount: Double) {
