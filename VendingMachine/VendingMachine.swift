@@ -96,7 +96,7 @@ class InventoryUnarchiver{
     }
 }
 
-enum VendinMachineError: Error{
+enum VendingMachineError: Error{
     case invalidSelection
     case outOfStock
     case insufficientFunds(required: Double)
@@ -114,11 +114,11 @@ class FoodVendingMachine: VendingMachine{
     
     func vend(selection: VendingSelection, quantity: Int) throws {
         guard var item = inventory[selection] else{
-            throw VendinMachineError.invalidSelection
+            throw VendingMachineError.invalidSelection
         }
         
         guard item.quantity >= quantity else{
-            throw VendinMachineError.outOfStock
+            throw VendingMachineError.outOfStock
         }
         
         let totalPrice = item.price * Double(quantity)
@@ -129,7 +129,7 @@ class FoodVendingMachine: VendingMachine{
             item.quantity -= quantity
         }else{
             let amountRequired = totalPrice - amountDeposited
-            throw VendinMachineError.insufficientFunds(required: amountRequired)
+            throw VendingMachineError.insufficientFunds(required: amountRequired)
         }
     }
     

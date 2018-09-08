@@ -74,9 +74,17 @@ class ViewController: UIViewController, UICollectionViewDataSource, UICollection
             do{
                 try vendingMachine.vend(selection: currentSelection, quantity: Int(quantityStepper.value))
                 updateDisplayWith(balance: vendingMachine.amountDeposited, totalPrice: 0.00, itemPrice: 0.00, itemQuantity: 1)
-            }catch{
-                // FIXME: Error handling code
+            }catch VendingMachineError.outOfStock {
+                showAlertWith(title: "Out of stock", message: "This item is unavailable. Please make another selection")
+            }catch VendingMachineError.insufficientFunds(let required){
+                let message = "You need $\(required) to complete the transaction"
+                showAlertWith(title: "Insufficient funds", message: message)
+            }catch VendingMachineError.invalidSelection{
+                showAlertWith(title: "Invalid Selection", message: "Please make another selection")
+            }catch let error{
+                fatalError("\(error)")
             }
+            
             if let indexPath = collectionView.indexPathsForSelectedItems?.first{
                 collectionView.deselectItem(at: indexPath, animated: true)
                 updateCell(having: indexPath, selected: false)
@@ -117,6 +125,18 @@ class ViewController: UIViewController, UICollectionViewDataSource, UICollection
         if let currentSelection = currentSelection, let item = vendingMachine.item(forSelection: currentSelection){
             updateTotalPrice(for: item)
         }
+    }
+    
+    func showAlertWith(title: String, message: String, style: UIAlertControllerStyle = .alert){
+        let alertController = UIAlertController(title: title, message: message, preferredStyle: style)
+        
+        let okAction = UIAlertAction(title: "OK", style: .default, handler: dismissAlert)
+        alertController.addAction(okAction)
+        present(alertController, animated: true, completion: nil)
+    }
+    
+    func dismissAlert(sender: UIAlertAction) -> Void{
+        updateDisplayWith(balance: 0, totalPrice: 0, itemPrice: 0, itemQuantity: 1)
     }
     
     // MARK: UICollectionViewDataSource
